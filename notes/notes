@@ -1,0 +1,18 @@
+docker run --name de-db-prostgres -e POSTGRES_PASSWORD=secret -d postgres
+
+sudo docker run --name de-db-prostgres -e POSTGRES_PASSWORD=secret -d postgres 
+
+sudo docker exec -u postgres de-db-postgres createdb postgres-db
+
+#pour se connecter à la db sur le conteneur docker 
+ sudo docker exec -it de-db-postgres psql -U postgres -d postgres-db
+
+ #Creaeting users table inside the db
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(50),
+    date_of_birth DATE
+);
