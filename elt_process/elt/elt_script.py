@@ -1,9 +1,9 @@
 import subprocess
-import time as t
+import time as time
 
 
 # La fonction pour vérifier la connection à la source_db
-def wait_for_postgres(host, max_retries=5, delay_seconds=5):
+def wait_for_postgres(host, max_retries=5, delay_seconds= 5):
     retries = 0
     while retries < max_retries:
         try:
@@ -18,7 +18,7 @@ def wait_for_postgres(host, max_retries=5, delay_seconds=5):
             retries += 1
             # Correct placement of parenthesis here
             print(f"Retrying in {delay_seconds} seconds... (Attempt {retries}/{max_retries})")
-           # time.sleep(delay_seconds)
+            time.sleep(delay_seconds)
     print("Max retries reached. Exiting")
     return False
 
