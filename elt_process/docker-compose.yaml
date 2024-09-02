@@ -1,10 +1,10 @@
-version: '3'
+version: '3.8'
 
 services:
   source_postgres:
     image: postgres:latest
     ports:
-      - "7000:55432"
+      - "7000:5432"
     networks:
       - etl_network
     environment:
@@ -13,17 +13,25 @@ services:
       POSTGRES_PASSWORD: secret
     volumes:
       - ./source_db_init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d source_db"]
+      interval: 10s
+      retries: 5
 
   destination_postgres:
     image: postgres:latest
     ports:
-      - "7001:55433"
+      - "7001:5432"
     networks:
       - etl_network
     environment:
       POSTGRES_DB: destination_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret    
+      POSTGRES_PASSWORD: secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d destination_db"]
+      interval: 10s
+      retries: 5
 
   elt_script:
     build:
@@ -33,8 +41,25 @@ services:
     networks:
       - etl_network
     depends_on:
-      - source_postgres
-      - destination_postgres
+      source_postgres:
+        condition: service_healthy
+      destination_postgres:
+        condition: service_healthy
+
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-postgres:latest
+    command: ["run", "--profiles-dir", "./custom_postgres", "--project-dir", "/dbt", "--full-refresh"]
+    networks:
+      - etl_network
+    volumes:
+      - ./custom-postgres:/dbt
+      - ~/.dbt:/root
+    depends_on:
+      elt_script:
+        condition: service_completed_successfully
+    environment:
+      DBT_PROFILE: default
+      DBT_TARGET: dev
 
 networks:
   etl_network:
